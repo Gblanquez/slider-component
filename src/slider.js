@@ -10,20 +10,43 @@ gsap.registerPlugin(Draggable, Flip, InertiaPlugin, Observer, SplitText);
 function sliderInit() {
   const slides = [...document.querySelectorAll(".slide-v")];
   const thumbnails = [...document.querySelectorAll(".slider-t-slide")];
+  const track = document.querySelector(".slider-v-list");
 
   let current = 0;
-  let autoplayDelay = 3; // seconds
+  let autoplayDelay = 3;
   let autoplayTimeline;
   let animating = false;
   let transitionGuard = false;
 
   // ---- INITIAL SETUP ----
-  slides[0].classList.add("is-active");
-  gsap.set(slides[0].querySelector(".slider-v-content"), {
-    clipPath: "inset(0% 0% 0% 0%)"
+  slides.forEach(slide => (slide.style.height = "100vh"));
+  track.style.display = "flex";
+  track.style.flexDirection = "column";
+  track.style.position = "relative";
+
+  // Initialize SplitText for all slides
+  const allSplits = slides.map((slide, i) => {
+    const textEl = slide.querySelector(".slide-text");
+    if (!textEl) return null;
+    const split = new SplitText(textEl, { type: "lines", mask: "lines" });
+    gsap.set(split.lines, {
+      y: i === 0 ? "0%" : "110%",
+      opacity: i === 0 ? 1 : 0
+    });
+    return split;
   });
 
-  // Single moving focus element
+  // Initialize buttons
+  slides.forEach((slide, i) => {
+    const btn = slide.querySelector(".slide-button");
+    if (btn) {
+      gsap.set(btn, { y: i === 0 ? 0 : "100%", opacity: i === 0 ? 1 : 0 });
+    }
+  });
+
+  slides[0].classList.add("is-active");
+
+  // Focus element
   const focusContainer = document.querySelector(".thumbnail-focus");
   thumbnails[0].appendChild(focusContainer);
 
@@ -34,34 +57,22 @@ function sliderInit() {
     if (autoplayTimeline) autoplayTimeline.kill();
 
     thumbnails.forEach(t =>
-      gsap.set(t.querySelector(".bg-timer"), {
-        scaleX: 0,
-        transformOrigin: "left center"
-      })
+      gsap.set(t.querySelector(".bg-timer"), { scaleX: 0, transformOrigin: "left center" })
     );
 
     const timer = thumbnails[current].querySelector(".bg-timer");
 
     autoplayTimeline = gsap.timeline({ onComplete: next });
-    autoplayTimeline.to(timer, {
-      scaleX: 1,
-      duration: autoplayDelay,
-      ease: "linear"
-    });
+    autoplayTimeline.to(timer, { scaleX: 1, duration: autoplayDelay, ease: "linear" });
   }
 
   // ---- SLIDE CHANGE ----
   function goTo(index) {
-
-    // ✅ NEW: prevent clicking active slide
     if (index === current) return;
-
-    // Prevent spam-fast transitions
     if (transitionGuard) return;
     transitionGuard = true;
-    setTimeout(() => (transitionGuard = false), 380);
+    setTimeout(() => (transitionGuard = false), 200);
 
-    // Finish ongoing animations cleanly
     if (animating) {
       gsap.globalTimeline.getChildren().forEach(tl => tl.progress(1));
       if (autoplayTimeline) autoplayTimeline.kill();
@@ -73,45 +84,73 @@ function sliderInit() {
 
     const $prev = slides[prev];
     const $next = slides[current];
-
-    const prevContent = $prev.querySelector(".slider-v-content");
-    const nextContent = $next.querySelector(".slider-v-content");
-
-    $next.classList.add("is-active");
-    gsap.set(nextContent, { clipPath: "inset(100% 0% 0% 0%)" });
-
-    // Text animation setup
-    const $nextText = $next.querySelector(".slide-text");
-    const split = new SplitText($nextText, { type: "lines" });
-    gsap.set(split.lines, { y: "110%", overflow: "hidden" });
-
-    // Button
+    const splitPrev = allSplits[prev];
+    const splitNext = allSplits[current];
     const $nextButton = $next.querySelector(".slide-button");
-    gsap.set($nextButton, { y: "110%", opacity: 0 });
+    const prevButton = $prev.querySelector(".slide-button");
 
     // Restart autoplay
     startAutoplay();
 
-    // FLIP thumbnail focus highlight
+    // FLIP highlight
     const newFocusParent = thumbnails[current];
     const flipState = Flip.getState(focusContainer);
     newFocusParent.appendChild(focusContainer);
     Flip.from(flipState, { duration: 0.6, ease: "power2.inOut" });
 
-    // Transition timeline
-    const tl = gsap.timeline({
-      defaults: { duration: 1.1, ease: "power3.inOut" },
+    // ---- LEAVING TEXT / BUTTON ----
+    if (splitPrev) {
+      gsap.killTweensOf(splitPrev.lines);
+      gsap.to(splitPrev.lines, {
+        y: "-110%",
+        opacity: 0,
+        duration: 0.6,
+        ease: "expo.in",
+        stagger: 0.02
+      });
+    }
+
+    if (prevButton) {
+      gsap.killTweensOf(prevButton);
+      gsap.to(prevButton, { y: "100%", opacity: 0, duration: 0.6, ease: "expo.in" });
+    }
+
+    // ---- MOVE SLIDER ----
+    gsap.to(track, {
+      y: -(current * window.innerHeight),
+      duration: 1.2,
+      ease: "power3.inOut",
       onComplete() {
-        $prev.classList.remove("is-active");
         animating = false;
+        slides.forEach((s, i) => s.classList.toggle("is-active", i === current));
       }
     });
 
-    tl
-      .to(nextContent, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power4.out" }, 0)
-      .to(prevContent, { clipPath: "inset(0% 0% 100% 0%)", duration: 1.6, ease: "power4.out" }, 0.1)
-      .to(split.lines, { y: "0%", duration: 1.4, ease: "expo.out", stagger: 0.05 }, 0.2)
-      .to($nextButton, { y: "0%", opacity: 1, duration: 0.8, ease: "expo.out" }, 0.2);
+    // ---- ENTERING TEXT / BUTTON (slight delay to be visible) ----
+    if (splitNext) {
+      gsap.killTweensOf(splitNext.lines);
+      gsap.fromTo(
+        splitNext.lines,
+        { y: "110%", opacity: 0 },
+        {
+          y: "0%",
+          opacity: 1,
+          duration: 0.6,
+          ease: "expo.out",
+          stagger: 0.015,
+          delay: 0.1 // slight delay so animation is visible
+        }
+      );
+    }
+
+    if ($nextButton) {
+      gsap.killTweensOf($nextButton);
+      gsap.fromTo(
+        $nextButton,
+        { y: "100%", opacity: 0 },
+        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", delay: 0.1 }
+      );
+    }
 
     thumbnails.forEach((t, i) => t.classList.toggle("is-active", i === current));
   }
@@ -128,9 +167,9 @@ function sliderInit() {
   // ---- SWIPE / TOUCH ----
   Observer.create({
     target: document.querySelector(".slider-v-wrapper"),
-    type: "touch,pointer,wheel",
-    onLeft: next,
-    onRight: prev
+    type: "touch,pointer",
+    onUp: prev,
+    onDown: next
   });
 
   return { next, prev, goTo, startAutoplay };
