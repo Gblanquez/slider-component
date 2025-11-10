@@ -1,0 +1,8 @@
+.slider-v-content {
+    overflow: hidden;
+    clip-path: inset(100% 0 0 0);
+    will-change: clip-path;
+  }
+  .slide-v.is-active .slider-v-content {
+    clip-path: inset(0% 0 0 0);
+  }
