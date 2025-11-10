@@ -6,3 +6,7 @@
   .slide-v.is-active .slider-v-content {
     clip-path: inset(0% 0 0 0);
   }
+
+  .no-pointer{
+    pointer-events: none;
+  }

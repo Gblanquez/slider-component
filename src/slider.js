@@ -9,11 +9,12 @@ gsap.registerPlugin(Draggable, Flip, InertiaPlugin, Observer, SplitText);
 
 function sliderInit() {
   const slides = [...document.querySelectorAll(".slide-v")];
+  const thumbnails = [...document.querySelectorAll(".slider-t-slide")];
+
   let current = 0;
   let animating = false;
-
   let autoplayDelay = 3; // seconds
-  let autoplayTimer;
+  let autoplayTimeline;
 
   // Setup first slide
   slides[0].classList.add("is-active");
@@ -21,13 +22,30 @@ function sliderInit() {
     clipPath: "inset(0% 0% 0% 0%)"
   });
 
-  function startAutoplay() {
-    stopAutoplay();
-    autoplayTimer = gsap.delayedCall(autoplayDelay, next);
-  }
+  // Start the autoplay + bg-timer for first slide
+  startAutoplay();
 
-  function stopAutoplay() {
-    if (autoplayTimer) autoplayTimer.kill();
+  function startAutoplay() {
+    // Kill any previous timeline
+    if (autoplayTimeline) autoplayTimeline.kill();
+
+    // Reset all timers
+    thumbnails.forEach(t =>
+      gsap.set(t.querySelector(".bg-timer"), { scaleX: 0, transformOrigin: "left center" })
+    );
+
+    const timer = thumbnails[current].querySelector(".bg-timer");
+
+    // Build a timeline: bg-timer fills + next slide after autoplayDelay
+    autoplayTimeline = gsap.timeline({
+      onComplete: next
+    });
+
+    autoplayTimeline.to(timer, {
+      scaleX: 1,
+      duration: autoplayDelay,
+      ease: "linear"
+    });
   }
 
   function goTo(index) {
@@ -45,40 +63,37 @@ function sliderInit() {
 
     // Prepare next slide
     $next.classList.add("is-active");
-    gsap.set(nextContent, { clipPath: "inset(100% 0% 0% 0%)" }); // hidden from bottom
+    gsap.set(nextContent, { clipPath: "inset(100% 0% 0% 0%)" });
+
+    // Split the text for line animation
+    const $nextText = $next.querySelector(".slide-text");
+    const split = new SplitText($nextText, { type: "lines" });
+    gsap.set(split.lines, { y: '110%', overflow: "hidden" });
+
+    // Prepare the button
+    const $nextButton = $next.querySelector(".slide-button");
+    gsap.set($nextButton, { y: '110%', opacity: 0 });
+
+    // Restart autoplay for new slide
+    startAutoplay();
 
     const tl = gsap.timeline({
       defaults: { duration: 1.1, ease: "power3.inOut" },
       onComplete() {
         $prev.classList.remove("is-active");
         animating = false;
-        startAutoplay();
       }
     });
 
     tl
-      // Reveal next slide (bottom → top)
-      .to(nextContent, {
-        clipPath: "inset(0% 0% 0% 0%)",
-        duration: 1.6,
-        ease:"power4.out"},
-        0)
+      .to(nextContent, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power4.out" }, 0)
+      .to(prevContent, { clipPath: "inset(0% 0% 100% 0%)", duration: 1.6, ease: "power4.out" }, 0.1)
+      .fromTo($next, { scale: 1 }, { scale: 1, duration: 1.2, ease: "expo.out" }, 0)
+      .to(split.lines, { y: '0%', duration: 1.4, ease: "expo.out", stagger: 0.05 }, 0.2)
+      .to($nextButton, { y: '0%', opacity: 1, duration: 0.8, ease: "expo.out" }, 0.2);
 
-      // Hide previous slide (bottom → top)
-      .to(prevContent,{
-        clipPath: "inset(0% 0% 100% 0%)",
-        duration: 1.6,
-        ease: "power4.out"
-        },
-         0.1)
-
-      // Cinematic scale easing
-      .fromTo(
-        $next,
-        { scale: 1 },
-        { scale: 1, duration: 1.2, ease: "expo.out" },
-        0
-      );
+    // Highlight current thumbnail
+    thumbnails.forEach((t, i) => t.classList.toggle("is-active", i === current));
   }
 
   function next() {
@@ -89,6 +104,13 @@ function sliderInit() {
     goTo(current - 1);
   }
 
+  // Clickable thumbnails
+  thumbnails.forEach((thumb, index) => {
+    thumb.addEventListener("click", () => {
+      goTo(index);
+    });
+  });
+
   // Swipe / touch navigation
   Observer.create({
     target: document.querySelector(".slider-v-wrapper"),
@@ -97,10 +119,7 @@ function sliderInit() {
     onRight: prev
   });
 
-  // Start autoplay
-  startAutoplay();
-
-  return { next, prev, goTo, startAutoplay, stopAutoplay };
+  return { next, prev, goTo, startAutoplay };
 }
 
 export default sliderInit;
