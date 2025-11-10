@@ -33,7 +33,7 @@ function sliderInit() {
   const isMobile = () => window.innerWidth <= 480;
 
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  const thumbOffset = () => (isMobile() ? rem * 2 : 0);
+  const thumbOffset = () => (isMobile() ? rem * 3 : 0);
 
 
   gsap.set(textList, { y: -(current * textSlideHeight()) });
