@@ -22,8 +22,11 @@ function sliderInit() {
     clipPath: "inset(0% 0% 0% 0%)"
   });
 
-  // Grab the thumbnail-focus of the first slide
-  let focusContainer = thumbnails[0].querySelector(".thumbnail-focus");
+  // Grab the single thumbnail-focus element
+  const focusContainer = document.querySelector(".thumbnail-focus");
+
+  // Move it initially to the first thumbnail
+  thumbnails[0].appendChild(focusContainer);
 
   // Start the autoplay + bg-timer
   startAutoplay();
@@ -76,7 +79,7 @@ function sliderInit() {
     // Animate thumbnail timers
     startAutoplay();
 
-    // ---- FLIP THE THUMBNAIL-FOCUS ----
+    // ---- FLIP THE SINGLE THUMBNAIL-FOCUS ----
     const newFocusParent = thumbnails[current];
     const flipState = Flip.getState(focusContainer);
     newFocusParent.appendChild(focusContainer);
