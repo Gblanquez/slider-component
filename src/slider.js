@@ -21,7 +21,7 @@ function sliderInit() {
   // ---- INITIAL SETUP ----
   const slideHeight = () => slides[0].offsetHeight;
 
-  slides.forEach(slide => (slide.style.height = "100%")); // use CSS wrapper height
+  slides.forEach(slide => (slide.style.height = "100%")); // Use wrapper height
   track.style.display = "flex";
   track.style.flexDirection = "column";
 
@@ -41,7 +41,7 @@ function sliderInit() {
   slides.forEach((slide, i) => {
     const btn = slide.querySelector(".slide-button");
     if (btn) {
-      gsap.set(btn, { y: i === 0 ? 0 : "100%", opacity: i === 0 ? 1 : 0 });
+      gsap.set(btn, { y: i === 0 ? "0%" : "100%", opacity: i === 0 ? 1 : 0 });
     }
   });
 
@@ -102,7 +102,7 @@ function sliderInit() {
     if (splitPrev) {
       gsap.killTweensOf(splitPrev.lines);
       gsap.to(splitPrev.lines, {
-        y: "-110%",
+        y: "-100%",
         opacity: 0,
         duration: 0.6,
         ease: "expo.in",
@@ -132,7 +132,7 @@ function sliderInit() {
       gsap.fromTo(
         splitNext.lines,
         { y: "110%", opacity: 0 },
-        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.015, delay: 0.1 }
+        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.02, delay: 0.1 }
       );
     }
 
@@ -141,7 +141,7 @@ function sliderInit() {
       gsap.fromTo(
         $nextButton,
         { y: "100%", opacity: 0 },
-        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", delay: 0.1 }
+        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", delay: 0.15 }
       );
     }
 
