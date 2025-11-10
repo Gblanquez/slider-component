@@ -3,14 +3,18 @@ import { Draggable } from "gsap/Draggable";
 import { Flip } from "gsap/Flip";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
 import { Observer } from "gsap/Observer";
-import { SplitText } from "gsap/SplitText";
 
-gsap.registerPlugin(Draggable, Flip, InertiaPlugin, Observer, SplitText);
+gsap.registerPlugin(Draggable, Flip, InertiaPlugin, Observer);
 
 function sliderInit() {
   const slides = [...document.querySelectorAll(".slide-v")];
   const thumbnails = [...document.querySelectorAll(".slider-t-slide")];
   const track = document.querySelector(".slider-v-list");
+
+  // ---- NEW: Text list elements ----
+  const textWrapper = document.querySelector(".slider-text-wrapper");
+  const textList = document.querySelector(".slider-text-list");
+  const textSlides = [...textList.children];
 
   let current = 0;
   let autoplayDelay = 3;
@@ -20,34 +24,26 @@ function sliderInit() {
 
   // ---- INITIAL SETUP ----
   const slideHeight = () => slides[0].offsetHeight;
+  const textSlideHeight = () => textSlides[0].offsetHeight;
 
-  slides.forEach(slide => (slide.style.height = "100%")); // Use wrapper height
+  slides.forEach(slide => (slide.style.height = "100%"));
   track.style.display = "flex";
   track.style.flexDirection = "column";
 
-  // Initialize SplitText for all slides
-  const allSplits = slides.map((slide, i) => {
-    const textEl = slide.querySelector(".slide-text");
-    if (!textEl) return null;
-    const split = new SplitText(textEl, { type: "lines", mask: "lines" });
-    gsap.set(split.lines, {
-      y: i === 0 ? "0%" : "110%",
-      opacity: i === 0 ? 1 : 0
-    });
-    return split;
-  });
+  // Set initial text positions
+  gsap.set(textList, { y: 0 });
 
   // Initialize buttons
   slides.forEach((slide, i) => {
     const btn = slide.querySelector(".slide-button");
     if (btn) {
-      gsap.set(btn, { y: i === 0 ? "0%" : "100%", opacity: i === 0 ? 1 : 0 });
+      gsap.set(btn, { y: i === 0 ? 0 : "100%", opacity: i === 0 ? 1 : 0 });
     }
   });
 
   slides[0].classList.add("is-active");
 
-  // Focus element
+  // Focus element for thumbnails
   const focusContainer = document.querySelector(".thumbnail-focus");
   thumbnails[0].appendChild(focusContainer);
 
@@ -84,36 +80,17 @@ function sliderInit() {
 
     const $prev = slides[prev];
     const $next = slides[current];
-    const splitPrev = allSplits[prev];
-    const splitNext = allSplits[current];
+    const $prevButton = $prev.querySelector(".slide-button");
     const $nextButton = $next.querySelector(".slide-button");
-    const prevButton = $prev.querySelector(".slide-button");
 
     // Restart autoplay
     startAutoplay();
 
-    // FLIP highlight
+    // FLIP highlight for thumbnail
     const newFocusParent = thumbnails[current];
     const flipState = Flip.getState(focusContainer);
     newFocusParent.appendChild(focusContainer);
     Flip.from(flipState, { duration: 0.6, ease: "power2.inOut" });
-
-    // ---- LEAVING TEXT / BUTTON ----
-    if (splitPrev) {
-      gsap.killTweensOf(splitPrev.lines);
-      gsap.to(splitPrev.lines, {
-        y: "-100%",
-        opacity: 0,
-        duration: 0.6,
-        ease: "expo.in",
-        stagger: 0.02
-      });
-    }
-
-    if (prevButton) {
-      gsap.killTweensOf(prevButton);
-      gsap.to(prevButton, { y: "100%", opacity: 0, duration: 0.6, ease: "expo.in" });
-    }
 
     // ---- MOVE SLIDER ----
     gsap.to(track, {
@@ -126,22 +103,22 @@ function sliderInit() {
       }
     });
 
-    // ---- ENTERING TEXT / BUTTON ----
-    if (splitNext) {
-      gsap.killTweensOf(splitNext.lines);
-      gsap.fromTo(
-        splitNext.lines,
-        { y: "110%", opacity: 0 },
-        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.02, delay: 0.1 }
-      );
-    }
+    // ---- MOVE TEXT LIST ----
+    gsap.to(textList, {
+      y: -(current * textSlideHeight()),
+      duration: 1,
+      ease: "power3.inOut"
+    });
 
+    // ---- BUTTONS ----
+    if ($prevButton) {
+      gsap.to($prevButton, { y: "100%", opacity: 0, duration: 0.6, ease: "expo.in" });
+    }
     if ($nextButton) {
-      gsap.killTweensOf($nextButton);
       gsap.fromTo(
         $nextButton,
         { y: "100%", opacity: 0 },
-        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", delay: 0.15 }
+        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", delay: 0.1 }
       );
     }
 
@@ -168,6 +145,7 @@ function sliderInit() {
   // ---- HANDLE RESIZE ----
   window.addEventListener("resize", () => {
     gsap.set(track, { y: -(current * slideHeight()) });
+    gsap.set(textList, { y: -(current * textSlideHeight()) });
   });
 
   return { next, prev, goTo, startAutoplay };
