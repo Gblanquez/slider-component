@@ -11,10 +11,13 @@ function sliderInit() {
   const thumbnails = [...document.querySelectorAll(".slider-t-slide")];
   const track = document.querySelector(".slider-v-list");
 
-  // ---- NEW: Text list elements ----
-  const textWrapper = document.querySelector(".slider-text-wrapper");
+  // ---- Text list elements ----
   const textList = document.querySelector(".slider-text-list");
   const textSlides = [...textList.children];
+
+  // ---- Button list elements ----
+  const buttonList = document.querySelector(".slider-button-list");
+  const buttonSlides = [...buttonList.children];
 
   let current = 0;
   let autoplayDelay = 3;
@@ -25,21 +28,15 @@ function sliderInit() {
   // ---- INITIAL SETUP ----
   const slideHeight = () => slides[0].offsetHeight;
   const textSlideHeight = () => textSlides[0].offsetHeight;
+  const buttonSlideHeight = () => buttonSlides[0].offsetHeight;
 
   slides.forEach(slide => (slide.style.height = "100%"));
   track.style.display = "flex";
   track.style.flexDirection = "column";
 
-  // Set initial text positions
+  // Set initial positions for text and buttons
   gsap.set(textList, { y: 0 });
-
-  // Initialize buttons
-  slides.forEach((slide, i) => {
-    const btn = slide.querySelector(".slide-button");
-    if (btn) {
-      gsap.set(btn, { y: i === 0 ? 0 : "100%", opacity: i === 0 ? 1 : 0 });
-    }
-  });
+  gsap.set(buttonList, { y: 0 });
 
   slides[0].classList.add("is-active");
 
@@ -78,8 +75,11 @@ function sliderInit() {
     const prev = current;
     current = (index + slides.length) % slides.length;
 
+    // Slide elements
     const $prev = slides[prev];
     const $next = slides[current];
+
+    // Individual buttons (if needed for special effects)
     const $prevButton = $prev.querySelector(".slide-button");
     const $nextButton = $next.querySelector(".slide-button");
 
@@ -92,7 +92,7 @@ function sliderInit() {
     newFocusParent.appendChild(focusContainer);
     Flip.from(flipState, { duration: 0.6, ease: "power2.inOut" });
 
-    // ---- MOVE SLIDER ----
+    // ---- MOVE SLIDER TRACK ----
     gsap.to(track, {
       y: -(current * slideHeight()),
       duration: 1.2,
@@ -110,17 +110,12 @@ function sliderInit() {
       ease: "power3.inOut"
     });
 
-    // ---- BUTTONS ----
-    if ($prevButton) {
-      gsap.to($prevButton, { y: "100%", opacity: 0, duration: 0.6, ease: "expo.in" });
-    }
-    if ($nextButton) {
-      gsap.fromTo(
-        $nextButton,
-        { y: "100%", opacity: 0 },
-        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", delay: 0.1 }
-      );
-    }
+    // ---- MOVE BUTTON LIST ----
+    gsap.to(buttonList, {
+      y: -(current * buttonSlideHeight()),
+      duration: 1,
+      ease: "power3.inOut"
+    });
 
     thumbnails.forEach((t, i) => t.classList.toggle("is-active", i === current));
   }
@@ -146,6 +141,7 @@ function sliderInit() {
   window.addEventListener("resize", () => {
     gsap.set(track, { y: -(current * slideHeight()) });
     gsap.set(textList, { y: -(current * textSlideHeight()) });
+    gsap.set(buttonList, { y: -(current * buttonSlideHeight()) });
   });
 
   return { next, prev, goTo, startAutoplay };
