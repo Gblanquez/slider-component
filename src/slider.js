@@ -12,21 +12,24 @@ function sliderInit() {
   const thumbnails = [...document.querySelectorAll(".slider-t-slide")];
 
   let current = 0;
-  let autoplayDelay = 3;
+  let autoplayDelay = 3; // seconds
   let autoplayTimeline;
   let animating = false;
   let transitionGuard = false;
 
+  // ---- INITIAL SETUP ----
   slides[0].classList.add("is-active");
   gsap.set(slides[0].querySelector(".slider-v-content"), {
     clipPath: "inset(0% 0% 0% 0%)"
   });
 
+  // Single moving focus element
   const focusContainer = document.querySelector(".thumbnail-focus");
   thumbnails[0].appendChild(focusContainer);
 
   startAutoplay();
 
+  // ---- AUTOPLAY ----
   function startAutoplay() {
     if (autoplayTimeline) autoplayTimeline.kill();
 
@@ -47,11 +50,18 @@ function sliderInit() {
     });
   }
 
+  // ---- SLIDE CHANGE ----
   function goTo(index) {
+
+    // ✅ NEW: prevent clicking active slide
+    if (index === current) return;
+
+    // Prevent spam-fast transitions
     if (transitionGuard) return;
     transitionGuard = true;
     setTimeout(() => (transitionGuard = false), 380);
 
+    // Finish ongoing animations cleanly
     if (animating) {
       gsap.globalTimeline.getChildren().forEach(tl => tl.progress(1));
       if (autoplayTimeline) autoplayTimeline.kill();
@@ -70,20 +80,25 @@ function sliderInit() {
     $next.classList.add("is-active");
     gsap.set(nextContent, { clipPath: "inset(100% 0% 0% 0%)" });
 
+    // Text animation setup
     const $nextText = $next.querySelector(".slide-text");
     const split = new SplitText($nextText, { type: "lines" });
     gsap.set(split.lines, { y: "110%", overflow: "hidden" });
 
+    // Button
     const $nextButton = $next.querySelector(".slide-button");
     gsap.set($nextButton, { y: "110%", opacity: 0 });
 
+    // Restart autoplay
     startAutoplay();
 
+    // FLIP thumbnail focus highlight
     const newFocusParent = thumbnails[current];
     const flipState = Flip.getState(focusContainer);
     newFocusParent.appendChild(focusContainer);
     Flip.from(flipState, { duration: 0.6, ease: "power2.inOut" });
 
+    // Transition timeline
     const tl = gsap.timeline({
       defaults: { duration: 1.1, ease: "power3.inOut" },
       onComplete() {
@@ -101,13 +116,16 @@ function sliderInit() {
     thumbnails.forEach((t, i) => t.classList.toggle("is-active", i === current));
   }
 
+  // ---- NEXT / PREV ----
   function next() { goTo(current + 1); }
   function prev() { goTo(current - 1); }
 
+  // ---- CLICK THUMBNAILS ----
   thumbnails.forEach((thumb, index) => {
     thumb.addEventListener("click", () => goTo(index));
   });
 
+  // ---- SWIPE / TOUCH ----
   Observer.create({
     target: document.querySelector(".slider-v-wrapper"),
     type: "touch,pointer,wheel",
