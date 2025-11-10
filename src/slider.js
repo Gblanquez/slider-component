@@ -18,8 +18,10 @@ function sliderInit() {
   const buttonList = document.querySelector(".slider-button-list");
   const buttonSlides = [...buttonList.children];
 
+  const isMobile = () => window.innerWidth <= 480;
 
-  let current = Math.floor(slides.length / 2);
+  // Desktop starts at 0, mobile starts centered
+  let current = isMobile() ? Math.floor(slides.length / 2) : 0;
 
   let autoplayDelay = 3;
   let autoplayTimeline;
@@ -30,16 +32,12 @@ function sliderInit() {
   const textSlideHeight = () => textSlides[0].offsetHeight;
   const buttonSlideHeight = () => buttonSlides[0].offsetHeight;
 
-  const isMobile = () => window.innerWidth <= 480;
-
   const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  const thumbOffset = () => (isMobile() ? rem * 3 : 0);
-
+  const thumbOffset = () => (isMobile() ? rem * 3 : 0); // responsive offset (3rem on mobile)
 
   gsap.set(textList, { y: -(current * textSlideHeight()) });
   gsap.set(buttonList, { y: -(current * buttonSlideHeight()) });
   gsap.set(thumbList, { x: 0 });  
-
   gsap.set(track, { y: -(current * slideHeight()) });
 
   slides.forEach((s, i) => s.classList.toggle("is-active", i === current));
@@ -105,7 +103,6 @@ function sliderInit() {
       duration: 1,
       ease: "power3.inOut"
     });
-
 
     let xShift = 0;
     if (current === 0) {
