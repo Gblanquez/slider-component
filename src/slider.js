@@ -19,10 +19,11 @@ function sliderInit() {
   let transitionGuard = false;
 
   // ---- INITIAL SETUP ----
-  slides.forEach(slide => (slide.style.height = "100vh"));
+  const slideHeight = () => slides[0].offsetHeight;
+
+  slides.forEach(slide => (slide.style.height = "100%")); // use CSS wrapper height
   track.style.display = "flex";
   track.style.flexDirection = "column";
-  track.style.position = "relative";
 
   // Initialize SplitText for all slides
   const allSplits = slides.map((slide, i) => {
@@ -68,8 +69,7 @@ function sliderInit() {
 
   // ---- SLIDE CHANGE ----
   function goTo(index) {
-    if (index === current) return;
-    if (transitionGuard) return;
+    if (index === current || transitionGuard) return;
     transitionGuard = true;
     setTimeout(() => (transitionGuard = false), 200);
 
@@ -117,7 +117,7 @@ function sliderInit() {
 
     // ---- MOVE SLIDER ----
     gsap.to(track, {
-      y: -(current * window.innerHeight),
+      y: -(current * slideHeight()),
       duration: 1.2,
       ease: "power3.inOut",
       onComplete() {
@@ -126,20 +126,13 @@ function sliderInit() {
       }
     });
 
-    // ---- ENTERING TEXT / BUTTON (slight delay to be visible) ----
+    // ---- ENTERING TEXT / BUTTON ----
     if (splitNext) {
       gsap.killTweensOf(splitNext.lines);
       gsap.fromTo(
         splitNext.lines,
         { y: "110%", opacity: 0 },
-        {
-          y: "0%",
-          opacity: 1,
-          duration: 0.6,
-          ease: "expo.out",
-          stagger: 0.015,
-          delay: 0.1 // slight delay so animation is visible
-        }
+        { y: "0%", opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.015, delay: 0.1 }
       );
     }
 
@@ -170,6 +163,11 @@ function sliderInit() {
     type: "touch,pointer",
     onUp: prev,
     onDown: next
+  });
+
+  // ---- HANDLE RESIZE ----
+  window.addEventListener("resize", () => {
+    gsap.set(track, { y: -(current * slideHeight()) });
   });
 
   return { next, prev, goTo, startAutoplay };
