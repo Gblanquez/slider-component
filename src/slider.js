@@ -31,7 +31,7 @@ function sliderInit() {
   const buttonSlideHeight = () => buttonSlides[0].offsetHeight;
 
   const isMobile = () => window.innerWidth <= 480;
-  const thumbOffset = () => (isMobile() ? 24 : 0); 
+  const thumbOffset = () => (isMobile() ? 32 : 0); 
 
   gsap.set(textList, { y: -(current * textSlideHeight()) });
   gsap.set(buttonList, { y: -(current * buttonSlideHeight()) });
