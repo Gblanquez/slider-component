@@ -30,15 +30,14 @@
     width: 1rem !important;
     height: 1rem !important;
     transform: rotateZ(45deg) !important;
-    scale: 0.9 !important;
+    transform: rotateZ(45deg) scale(0.9) !important;
   }
 
   .splide.row-card .splide__pagination__page
   {
     width: 1rem !important;
     height: 1rem !important;
-    transform: rotateZ(45deg) !important;
-    scale: 0.9 !important;
+    transform: rotateZ(45deg) scale(0.9) !important;
   }
   
   
