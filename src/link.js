@@ -67,8 +67,8 @@ function underlineAnimation() {
       duration: 1.4,
       ease: "expo.out",
       scrollTrigger: {
-        trigger: el,
-        start: "bottom 90%", 
+        trigger: el.querySelector(".underline-text"),
+        start: "bottom 96%", 
         toggleActions: "play none none none",
       }
     });
