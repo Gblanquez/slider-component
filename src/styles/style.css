@@ -30,7 +30,7 @@
     width: 1rem !important;
     height: 1rem !important;
     transform: rotateZ(45deg) !important;
-    transform: rotateZ(45deg) scale(0.9) !important;
+    transform: rotateZ(45deg) scale(0.5) !important;
   }
 
   .splide.row-card .splide__pagination__page
