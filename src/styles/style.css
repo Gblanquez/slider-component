@@ -53,7 +53,7 @@
 
   .underline-text
   {
-    display: inline !important;
+    display: inline-flex !important;
     position: relative;
   }
   
