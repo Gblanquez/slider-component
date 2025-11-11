@@ -40,4 +40,14 @@
     transform: rotateZ(45deg) scale(0.9) !important;
   }
   
+
+  [data-a="underline"] .underline-container {
+    position: absolute !important;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0.04em;
+    overflow: hidden;
+    pointer-events: none; /* avoid hits */
+  }
   
