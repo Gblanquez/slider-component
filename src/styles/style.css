@@ -39,6 +39,13 @@
     height: 1rem !important;
     transform: rotateZ(45deg) scale(0.9) !important;
   }
+
+  .splide__pagination__page{
+    width: 1rem !important;
+    height: 1rem !important;
+    transform: rotateZ(45deg) !important;
+    transform: rotateZ(45deg) scale(0.9) !important;
+  }
   
 
   [data-a="underline"] .underline-container {
