@@ -19,7 +19,7 @@
     height: 150%;
     top: -20%;
     left: -20%;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.6);
     pointer-events: none;
     transition: opacity 0.35s ease;
     opacity: 0; 
