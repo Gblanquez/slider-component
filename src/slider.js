@@ -22,7 +22,7 @@ function sliderInit() {
   let initialIndex = isMobile() ? Math.floor(slides.length / 2) : 0;
   let current = initialIndex;
 
-  let autoplayDelay = 3;
+  let autoplayDelay = 5;
   let autoplayTimeline;
   let animating = false;
   let transitionGuard = false;
