@@ -3,8 +3,10 @@ import { Draggable } from "gsap/Draggable";
 import { Flip } from "gsap/Flip";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
 import { Observer } from "gsap/Observer";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(Draggable, Flip, InertiaPlugin, Observer);
+
+gsap.registerPlugin(Draggable, Flip, InertiaPlugin, Observer, ScrollTrigger);
 
 function sliderInit() {
   const slides = [...document.querySelectorAll(".slide-v")];
